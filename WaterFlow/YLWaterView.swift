@@ -29,8 +29,10 @@ class YLWaterView: UIView {
     var deltaAngle:CGFloat!
     var isHiddening:Bool! = true
     let kWidth:CGFloat = 160
-    let minW:CGFloat = 100
+    let minW:CGFloat = 50
     let innerEdges:CGFloat = 15
+    let minWrapInset:CGFloat = 10
+    var startInner:CGFloat = 15
     var delegate:YLWaterDelegate?
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -47,16 +49,19 @@ class YLWaterView: UIView {
         self.wrapView.snp.makeConstraints { (maker) in
             maker.edges.equalTo(UIEdgeInsetsMake(10, 10, 10, 10))
         }
+        let image = UIImage(named:model.imageName)
+        self.wrapImageView.image = image
         
-        self.wrapImageView.image = UIImage(named:model.imageName)
         
+        
+        let height = kWidth/(image?.size.width)!*(image?.size.height)!
         
         self.wrapView.addSubview(self.wrapImageView)
         self.wrapImageView.snp.makeConstraints { (maker) in
             maker.edges.equalTo(UIEdgeInsetsMake(innerEdges, innerEdges, innerEdges, innerEdges))
         }
 //
-        self.frame = CGRect(x: 100, y: 100, width: kWidth, height: kWidth)
+        self.frame = CGRect(x: 100, y: 100, width: kWidth, height: height)
         
         wrapView.layer.addSublayer(self.shapLayer)
       
@@ -162,7 +167,6 @@ class YLWaterView: UIView {
         if gesture.state == .began{
             prevPoint = gesture.location(in: self)
             self.setNeedsLayout()
-
             
             
         }else if gesture.state == .changed{
@@ -173,8 +177,12 @@ class YLWaterView: UIView {
             hChange = wChange/self.bounds.width*self.bounds.height
             let finalWidth = self.bounds.width + wChange*2
             let finalHeight = self.bounds.height + hChange*2
-            if finalWidth < minW{
-                  prevPoint = gesture.location(ofTouch: 0, in: self)
+            
+             if finalWidth <= minW{
+                prevPoint = gesture.location(ofTouch: 0, in: self)
+                if self.wrapImageView.bounds.width <= 20{
+                    return
+                }
                 return
             }
             self.bounds = CGRect(x:self.bounds.origin.x,y:self.bounds.origin.y,width:finalWidth,height:finalHeight)
@@ -203,8 +211,7 @@ class YLWaterView: UIView {
         shapLayer.path = path.cgPath
         shapLayer.bounds = CGRect(x: 0, y: 0, width: wrapView.frame.width-1, height: wrapView.frame.height-1)
         shapLayer.position = CGPoint(x:wrapView.frame.midX - 10,y:wrapView.frame.midY-10)
-//        self.superview?.bringSubview(toFront: self)
-    }
+     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         let touch = ((touches as NSSet).anyObject() as AnyObject)
