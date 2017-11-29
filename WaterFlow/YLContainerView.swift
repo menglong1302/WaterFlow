@@ -17,6 +17,7 @@ class YLContainerView: UIView {
     fileprivate lazy var editIcon:UIImageView = self.makeEditIcon()
     fileprivate lazy var moveIcon:UIImageView = self.makeMoveIcon()
     fileprivate lazy var wrapImageView:UIImageView = self.makeWrapImageView()
+    fileprivate var model:YLWrapModel!
     var touchStart:CGPoint!
     var startPoint:CGPoint!
     var prevPoint:CGPoint!
@@ -24,13 +25,14 @@ class YLContainerView: UIView {
     var isHiddening:Bool! = true
     let kWidth:CGFloat = 160
     let minW:CGFloat = 100
+    let innerEdges:CGFloat = 15
     override init(frame: CGRect) {
         super.init(frame: frame)
     }
     
     convenience  init(_ model:YLWrapModel) {
         self.init()
-        
+        self.model = model
         //        9610204149484
         touchStart = CGPoint.zero
         self.backgroundColor = UIColor.clear
@@ -45,7 +47,7 @@ class YLContainerView: UIView {
         
         self.wrapView.addSubview(self.wrapImageView)
         self.wrapImageView.snp.makeConstraints { (maker) in
-            maker.edges.equalTo(UIEdgeInsetsMake(20, 20, 20, 20))
+            maker.edges.equalTo(UIEdgeInsetsMake(innerEdges, innerEdges, innerEdges, innerEdges))
         }
 //
         self.frame = CGRect(x: 100, y: 100, width: kWidth, height: kWidth)
@@ -78,10 +80,25 @@ class YLContainerView: UIView {
         let tapGesture =  UITapGestureRecognizer(target: self, action: #selector(tapGesture(_:)))
         tapGesture.numberOfTapsRequired = 1
         self.addGestureRecognizer(tapGesture)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(selected(_:)), name: NSNotification.Name(rawValue: "containerView"), object: nil)
+        
         hide()
     }
-    
+    @objc func selected(_ noti:Notification){
+       let model =  noti.object as? YLWrapModel
+        
+        if  self.model.id == model?.id{
+            return
+        }else{
+            self.hide()
+        }
+    }
     @objc func tapGesture(_ gesture:UITapGestureRecognizer){
+        show()
+    }
+    
+    func show() {
         let path = UIBezierPath(roundedRect: CGRect(x: 0, y: 0, width: wrapView.frame.width-1, height: wrapView.frame.height-1), cornerRadius: 3)
         shapLayer.path = path.cgPath
         shapLayer.bounds = CGRect(x: 0, y: 0, width: wrapView.frame.width-1, height: wrapView.frame.height-1)
@@ -90,9 +107,10 @@ class YLContainerView: UIView {
             $0.isHidden = false
         }
         self.isHiddening = false
+        self.superview?.bringSubview(toFront: self)
+        
+        NotificationCenter.default.post(name: NSNotification.Name.init("containerView"), object: self.model)
     }
-    
-    
     func hide() {
         [deleteIcon,editIcon,moveIcon].forEach {
             $0.isHidden = true
@@ -114,6 +132,9 @@ class YLContainerView: UIView {
         if gesture.state == .began{
             prevPoint = gesture.location(in: self)
             self.setNeedsLayout()
+
+            
+            
         }else if gesture.state == .changed{
             
             let point = gesture.location(in: self)
@@ -152,13 +173,15 @@ class YLContainerView: UIView {
         shapLayer.path = path.cgPath
         shapLayer.bounds = CGRect(x: 0, y: 0, width: wrapView.frame.width-1, height: wrapView.frame.height-1)
         shapLayer.position = CGPoint(x:wrapView.frame.midX - 10,y:wrapView.frame.midY-10)
-        
+//        self.superview?.bringSubview(toFront: self)
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         let touch = ((touches as NSSet).anyObject() as AnyObject)
         touchStart = touch.location(in: self.superview)
         startPoint = touch.location(in:self)
+        self.show()
+
         
     }
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {

@@ -11,10 +11,13 @@ import UIKit
 class ViewController: UIViewController {
 
     lazy var aa:YLContainerView = YLContainerView(YLWrapModel())
+    lazy var bb:YLContainerView = YLContainerView(YLWrapModel())
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
         self.view.addSubview(aa)
+        self.view.addSubview(bb)
         self.view.backgroundColor = UIColor.black
         
         let tapGesture =  UITapGestureRecognizer(target: self, action: #selector(tapGesture(_:)))
@@ -23,7 +26,8 @@ class ViewController: UIViewController {
         
      }
   @objc func tapGesture(_ gesture:UITapGestureRecognizer){
-    aa.hide()
+    NotificationCenter.default.post(name: NSNotification.Name.init("containerView"), object: nil)
+   
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()

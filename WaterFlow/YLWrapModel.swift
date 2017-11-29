@@ -12,6 +12,7 @@ class YLWrapModel: Mappable {
     
     var imageName = "icon1"
     
+    var id:String = UUID().uuidString
     
     required init?(map: Map) {
         
