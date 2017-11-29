@@ -9,6 +9,11 @@
 import Foundation
 import UIKit
 import SnapKit
+
+protocol YLContainerDelegate {
+    func edit(_ containerView:YLContainerView, _ model:YLWrapModel)
+}
+
 class YLContainerView: UIView {
     
     fileprivate lazy var wrapView:UIView = self.makeWrapView()
@@ -26,6 +31,7 @@ class YLContainerView: UIView {
     let kWidth:CGFloat = 160
     let minW:CGFloat = 100
     let innerEdges:CGFloat = 15
+    var delegate:YLContainerDelegate?
     override init(frame: CGRect) {
         super.init(frame: frame)
     }
@@ -84,6 +90,30 @@ class YLContainerView: UIView {
         NotificationCenter.default.addObserver(self, selector: #selector(selected(_:)), name: NSNotification.Name(rawValue: "containerView"), object: nil)
         
         hide()
+
+        let deleteGesture =  UITapGestureRecognizer(target: self, action: #selector(gestureClick(_:)))
+        deleteGesture.numberOfTapsRequired = 1
+        deleteIcon.addGestureRecognizer(deleteGesture)
+        
+        let editGesture =  UITapGestureRecognizer(target: self, action: #selector(gestureClick(_:)))
+        editGesture.numberOfTapsRequired = 1
+        editIcon.addGestureRecognizer(editGesture)
+        
+ 
+        
+        
+    }
+    @objc func gestureClick(_ gesture:UITapGestureRecognizer){
+        if gesture.view?.tag == 100{
+            self.removeFromSuperview()
+        }else if gesture.view?.tag == 101{
+            self.delegate?.edit(self, self.model)
+        }
+    
+    }
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+
     }
     @objc func selected(_ noti:Notification){
        let model =  noti.object as? YLWrapModel
@@ -226,7 +256,7 @@ class YLContainerView: UIView {
         image.contentMode = .scaleAspectFit
         image.image = UIImage(named:"water_delete")
         image.isUserInteractionEnabled = true
-        
+        image.tag = 100
         return image
     }
     func makeEditIcon() -> UIImageView {
@@ -234,7 +264,7 @@ class YLContainerView: UIView {
         image.contentMode = .scaleAspectFit
         image.image = UIImage(named:"water_edit")
         image.isUserInteractionEnabled = true
-        
+        image.tag = 101
         return image
     }
     func makeMoveIcon() -> UIImageView {
