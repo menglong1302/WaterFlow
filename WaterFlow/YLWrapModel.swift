@@ -11,7 +11,7 @@ import ObjectMapper
 class YLWrapModel: Mappable {
     
     var imageName = "icon1"
-    
+    var isShowEdit:Bool = true
     var id:String = UUID().uuidString
     
     required init?(map: Map) {

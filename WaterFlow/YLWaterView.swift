@@ -29,10 +29,11 @@ class YLWaterView: UIView {
     var deltaAngle:CGFloat!
     var isHiddening:Bool! = true
     let kWidth:CGFloat = 160
-    let minW:CGFloat = 50
+    let minW:CGFloat = 60
     let innerEdges:CGFloat = 15
     let minWrapInset:CGFloat = 10
     var startInner:CGFloat = 15
+    let maxInner:CGFloat = 35
     var delegate:YLWaterDelegate?
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -41,7 +42,6 @@ class YLWaterView: UIView {
     convenience  init(_ model:YLWrapModel) {
         self.init()
         self.model = model
-        //        9610204149484
         touchStart = CGPoint.zero
         self.backgroundColor = UIColor.clear
         
@@ -60,11 +60,11 @@ class YLWaterView: UIView {
         self.wrapImageView.snp.makeConstraints { (maker) in
             maker.edges.equalTo(UIEdgeInsetsMake(innerEdges, innerEdges, innerEdges, innerEdges))
         }
-//
+        
         self.frame = CGRect(x: 100, y: 100, width: kWidth, height: height)
         
         wrapView.layer.addSublayer(self.shapLayer)
-      
+        
         
         [deleteIcon,editIcon,moveIcon].forEach {
             self.addSubview($0)
@@ -81,6 +81,10 @@ class YLWaterView: UIView {
             maker.width.height.equalTo(30)
             maker.bottom.right.equalToSuperview()
         }
+        
+        self.editIcon.isHidden = !(self.model.isShowEdit)
+        
+        
         self.setNeedsDisplay()
         deltaAngle = atan2(self.frame.maxY - self.center.y, self.frame.maxX - self.center.x)
         let moveGesture  = UIPanGestureRecognizer(target: self, action: #selector(moveGesture(_:)))
@@ -95,7 +99,7 @@ class YLWaterView: UIView {
         NotificationCenter.default.addObserver(self, selector: #selector(selected(_:)), name: NSNotification.Name(rawValue: "containerView"), object: nil)
         
         hide()
-
+        
         let deleteGesture =  UITapGestureRecognizer(target: self, action: #selector(gestureClick(_:)))
         deleteGesture.numberOfTapsRequired = 1
         deleteIcon.addGestureRecognizer(deleteGesture)
@@ -104,7 +108,7 @@ class YLWaterView: UIView {
         editGesture.numberOfTapsRequired = 1
         editIcon.addGestureRecognizer(editGesture)
         
- 
+        
         
         
     }
@@ -114,14 +118,14 @@ class YLWaterView: UIView {
         }else if gesture.view?.tag == 101{
             self.delegate?.edit(self, self.model)
         }
-    
+        
     }
     deinit {
         NotificationCenter.default.removeObserver(self)
-
+        
     }
     @objc func selected(_ noti:Notification){
-       let model =  noti.object as? YLWrapModel
+        let model =  noti.object as? YLWrapModel
         
         if  self.model.id == model?.id{
             return
@@ -178,19 +182,59 @@ class YLWaterView: UIView {
             let finalWidth = self.bounds.width + wChange*2
             let finalHeight = self.bounds.height + hChange*2
             
-             if finalWidth <= minW{
+            if finalWidth <= minW{
                 prevPoint = gesture.location(ofTouch: 0, in: self)
-                if self.wrapImageView.bounds.width <= 20{
-                    return
-                }
+                
+//                if self.startInner >= maxInner {
+//                    self.startInner = maxInner
+//
+//                }else{
+//                    startInner += abs(wChange)
+//
+//                }
+//                if self.startInner >= self.innerEdges{
+//                    self.wrapImageView.snp.remakeConstraints { (maker) in
+//                        maker.edges.equalTo(UIEdgeInsetsMake(startInner, startInner, startInner, startInner))
+//                        maker.width.greaterThanOrEqualTo(10).priority(999)
+//
+//                    }
+//                }
+//
+                
+                
                 return
             }
+//            else{
+//
+//               print( "\(startInner)+++++++\(wChange)")
+//                if self.startInner >= self.innerEdges {
+//                    if self.startInner > maxInner {
+//                        self.startInner = maxInner
+//                    }else{
+//                        self.startInner -= abs(wChange)
+//                    }
+//                    self.wrapImageView.snp.remakeConstraints { (maker) in
+//                        maker.edges.equalTo(UIEdgeInsetsMake(startInner, startInner, startInner, startInner))
+//                        maker.width.greaterThanOrEqualTo(10).priority(999)
+//                    }
+//
+//
+//                    let ang =   atan2(gesture.location(in: self.superview).y - self.center.y,  gesture.location(in: self.superview).x - self.center.x )
+//                    let angleDiff =   deltaAngle - ang
+//                    self.transform = CGAffineTransform(rotationAngle:-angleDiff)
+//                    self.layoutIfNeeded()
+//
+//                    return
+//                }
+//
+//
+//            }
+            
+            
+            
+            
             self.bounds = CGRect(x:self.bounds.origin.x,y:self.bounds.origin.y,width:finalWidth,height:finalHeight)
-            
-          
             prevPoint = gesture.location(ofTouch: 0, in: self)
-
-            
             let ang =   atan2(gesture.location(in: self.superview).y - self.center.y,  gesture.location(in: self.superview).x - self.center.x )
             let angleDiff =   deltaAngle - ang
             self.transform = CGAffineTransform(rotationAngle:-angleDiff)
@@ -202,7 +246,7 @@ class YLWaterView: UIView {
     }
     override func layoutSubviews() {
         super.layoutSubviews()
- 
+        
         guard !isHiddening else {
             return
         }
@@ -211,14 +255,14 @@ class YLWaterView: UIView {
         shapLayer.path = path.cgPath
         shapLayer.bounds = CGRect(x: 0, y: 0, width: wrapView.frame.width-1, height: wrapView.frame.height-1)
         shapLayer.position = CGPoint(x:wrapView.frame.midX - 10,y:wrapView.frame.midY-10)
-     }
+    }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         let touch = ((touches as NSSet).anyObject() as AnyObject)
         touchStart = touch.location(in: self.superview)
         startPoint = touch.location(in:self)
         self.show()
-
+        
         
     }
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
