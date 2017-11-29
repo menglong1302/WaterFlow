@@ -21,35 +21,35 @@ class YLContainerView: UIView {
     var startPoint:CGPoint!
     var prevPoint:CGPoint!
     var deltaAngle:CGFloat!
-    var wrapImage:UIImage?{
-        didSet{
-            self.wrapImageView.image = wrapImage
-            self.wrapView.addSubview(self.wrapImageView)
-            self.wrapImageView.snp.makeConstraints { (maker) in
-                maker.edges.equalTo(UIEdgeInsetsMake(20, 20, 20, 20))
-            }
-        }
-    }
+    var isHiddening:Bool! = true
+    let kWidth:CGFloat = 160
     let minW:CGFloat = 100
     override init(frame: CGRect) {
         super.init(frame: frame)
     }
     
-    convenience  init(_ sub:UIImage) {
+    convenience  init(_ model:YLWrapModel) {
         self.init()
         
         //        9610204149484
         touchStart = CGPoint.zero
         self.backgroundColor = UIColor.clear
         
-        
-        
         self.addSubview(self.wrapView)
         self.wrapView.snp.makeConstraints { (maker) in
             maker.edges.equalTo(UIEdgeInsetsMake(10, 10, 10, 10))
         }
-      
-        self.frame = CGRect(x: 0, y: 100, width: 200, height: 200)
+        
+        self.wrapImageView.image = UIImage(named:model.imageName)
+        
+        
+        self.wrapView.addSubview(self.wrapImageView)
+        self.wrapImageView.snp.makeConstraints { (maker) in
+            maker.edges.equalTo(UIEdgeInsetsMake(20, 20, 20, 20))
+        }
+//
+        self.frame = CGRect(x: 100, y: 100, width: kWidth, height: kWidth)
+        
         wrapView.layer.addSublayer(self.shapLayer)
       
         
@@ -68,14 +68,38 @@ class YLContainerView: UIView {
             maker.width.height.equalTo(30)
             maker.bottom.right.equalToSuperview()
         }
-        self.layoutIfNeeded()
-        deltaAngle = atan2(self.frame.maxY - self.center.y, self.frame.origin.x + self.frame.maxX - self.center.x)
+        self.setNeedsDisplay()
+        deltaAngle = atan2(self.frame.maxY - self.center.y, self.frame.maxX - self.center.x)
         let moveGesture  = UIPanGestureRecognizer(target: self, action: #selector(moveGesture(_:)))
         
         moveIcon.addGestureRecognizer(moveGesture)
         
+        
+        let tapGesture =  UITapGestureRecognizer(target: self, action: #selector(tapGesture(_:)))
+        tapGesture.numberOfTapsRequired = 1
+        self.addGestureRecognizer(tapGesture)
+        hide()
     }
     
+    @objc func tapGesture(_ gesture:UITapGestureRecognizer){
+        let path = UIBezierPath(roundedRect: CGRect(x: 0, y: 0, width: wrapView.frame.width-1, height: wrapView.frame.height-1), cornerRadius: 3)
+        shapLayer.path = path.cgPath
+        shapLayer.bounds = CGRect(x: 0, y: 0, width: wrapView.frame.width-1, height: wrapView.frame.height-1)
+        shapLayer.position = CGPoint(x:wrapView.frame.midX - 10,y:wrapView.frame.midY-10)
+        [deleteIcon,editIcon,moveIcon].forEach {
+            $0.isHidden = false
+        }
+        self.isHiddening = false
+    }
+    
+    
+    func hide() {
+        [deleteIcon,editIcon,moveIcon].forEach {
+            $0.isHidden = true
+        }
+        self.isHiddening = true
+        shapLayer.path = nil
+    }
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -108,7 +132,7 @@ class YLContainerView: UIView {
             prevPoint = gesture.location(ofTouch: 0, in: self)
 
             
-            let ang =   atan2(gesture.location(in: self.superview).y - self.center.y,  gesture.location(in: self.superview).x - self.center.x)
+            let ang =   atan2(gesture.location(in: self.superview).y - self.center.y,  gesture.location(in: self.superview).x - self.center.x )
             let angleDiff =   deltaAngle - ang
             self.transform = CGAffineTransform(rotationAngle:-angleDiff)
             self.layoutIfNeeded()
@@ -119,6 +143,11 @@ class YLContainerView: UIView {
     }
     override func layoutSubviews() {
         super.layoutSubviews()
+ 
+        guard !isHiddening else {
+            return
+        }
+        
         let path = UIBezierPath(roundedRect: CGRect(x: 0, y: 0, width: wrapView.frame.width-1, height: wrapView.frame.height-1), cornerRadius: 3)
         shapLayer.path = path.cgPath
         shapLayer.bounds = CGRect(x: 0, y: 0, width: wrapView.frame.width-1, height: wrapView.frame.height-1)

@@ -10,15 +10,21 @@ import UIKit
 
 class ViewController: UIViewController {
 
-    lazy var aa:YLContainerView = YLContainerView(UIImage(named:"icon1")!)
+    lazy var aa:YLContainerView = YLContainerView(YLWrapModel())
     override func viewDidLoad() {
         super.viewDidLoad()
         
         self.view.addSubview(aa)
-        aa.wrapImage = UIImage(named:"icon1")
         self.view.backgroundColor = UIColor.black
+        
+        let tapGesture =  UITapGestureRecognizer(target: self, action: #selector(tapGesture(_:)))
+        tapGesture.numberOfTapsRequired = 1
+        self.view.addGestureRecognizer(tapGesture)
+        
      }
-
+  @objc func tapGesture(_ gesture:UITapGestureRecognizer){
+    aa.hide()
+    }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
