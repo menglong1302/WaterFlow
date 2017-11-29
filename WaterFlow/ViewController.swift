@@ -10,8 +10,8 @@ import UIKit
 
 class ViewController: UIViewController {
 
-    lazy var aa:YLContainerView = YLContainerView(YLWrapModel())
-    lazy var bb:YLContainerView = YLContainerView(YLWrapModel())
+    lazy var aa:YLWaterView = YLWaterView(YLWrapModel())
+    lazy var bb:YLWaterView = YLWaterView(YLWrapModel())
 
     override func viewDidLoad() {
         super.viewDidLoad()

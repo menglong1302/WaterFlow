@@ -10,11 +10,11 @@ import Foundation
 import UIKit
 import SnapKit
 
-protocol YLContainerDelegate {
-    func edit(_ containerView:YLContainerView, _ model:YLWrapModel)
+protocol YLWaterDelegate {
+    func edit(_ containerView:YLWaterView, _ model:YLWrapModel)
 }
 
-class YLContainerView: UIView {
+class YLWaterView: UIView {
     
     fileprivate lazy var wrapView:UIView = self.makeWrapView()
     fileprivate lazy var shapLayer:CAShapeLayer = self.addDash()
@@ -31,7 +31,7 @@ class YLContainerView: UIView {
     let kWidth:CGFloat = 160
     let minW:CGFloat = 100
     let innerEdges:CGFloat = 15
-    var delegate:YLContainerDelegate?
+    var delegate:YLWaterDelegate?
     override init(frame: CGRect) {
         super.init(frame: frame)
     }
@@ -173,7 +173,7 @@ class YLContainerView: UIView {
             hChange = wChange/self.bounds.width*self.bounds.height
             let finalWidth = self.bounds.width + wChange*2
             let finalHeight = self.bounds.height + hChange*2
-             if finalWidth < minW{
+            if finalWidth < minW{
                   prevPoint = gesture.location(ofTouch: 0, in: self)
                 return
             }
